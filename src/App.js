@@ -5,10 +5,12 @@ import { ethers } from 'ethers';
 import myEpicNFT from './utils/MyEpicNFT.json';
 
 // Constants
-const TWITTER_HANDLE = '_buildspace';
+const TWITTER_HANDLE = 'OCoder223';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-const OPENSEA_LINK = '';
+const OPENSEA_LINK = 'https://testnets.opensea.io/assets/';
 const TOTAL_MINT_COUNT = 50;
+
+const CONTRACT_ADDRESS = '0xB7b9Bd4ea65B10C10067Dc246BA70C5af65C508e';
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState('');
@@ -28,7 +30,7 @@ const App = () => {
     if (accounts.length !== 0) {
       const account = accounts[0];
       console.log('Found an authorized account:', account);
-      setCurrentAccount(account);
+      setupEventListener();
     } else {
       console.log('No authorized account found');
     }
@@ -48,13 +50,43 @@ const App = () => {
       });
       console.log('Connected', accounts[0]);
       setCurrentAccount(accounts[0]);
+      setupEventListener();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const setupEventListener = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          myEpicNFT.abi,
+          signer
+        );
+
+        connectedContract.on('NewEpicNFTMinted', (from, tokenId) => {
+          console.log('HERE----------------');
+          console.log(from, tokenId.toNumber());
+          alert(
+            `Your NFT has been minted! Here is the link -> ${OPENSEA_LINK}${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
+          );
+        });
+
+        console.log('Setup event listener');
+      } else {
+        console.log("Ethereum object doesn't exist");
+      }
     } catch (error) {
       console.log(error);
     }
   };
 
   const askContractToMintNft = async () => {
-    const CONTRACT_ADDRESS = '0x77AB7E82efaa6bFB63AB3141c1C17624897e2A66';
     try {
       const { ethereum } = window;
 
@@ -126,7 +158,7 @@ const App = () => {
             href={TWITTER_LINK}
             target="_blank"
             rel="noreferrer"
-          >{`built on @${TWITTER_HANDLE}`}</a>
+          >{`${TWITTER_HANDLE}`}</a>
         </div>
       </div>
     </div>
